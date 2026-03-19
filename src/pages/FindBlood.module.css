@@ -1,0 +1,143 @@
+.pageContainer {
+  padding: 3rem 1rem;
+  background-color: var(--bg-color);
+  min-height: calc(100vh - 70px);
+}
+
+.searchSection {
+  max-width: 800px;
+  margin: 0 auto;
+  margin-bottom: 3rem;
+}
+
+.searchHeader {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.searchTitle {
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+}
+
+.searchSubtitle {
+  color: var(--text-muted);
+}
+
+.toggleContainer {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 2rem;
+}
+
+.toggleGroup {
+  display: inline-flex;
+  background: white;
+  padding: 0.25rem;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--border-light);
+  box-shadow: var(--shadow-sm);
+}
+
+.toggleBtn {
+  padding: 0.5rem 1.5rem;
+  border-radius: var(--radius-full);
+  font-weight: 500;
+  color: var(--text-muted);
+  transition: all var(--transition-fast);
+}
+
+.toggleBtn.active {
+  background-color: var(--text-main);
+  color: white;
+  box-shadow: var(--shadow-sm);
+}
+
+.formCard {
+  background: white;
+  border-radius: var(--radius-lg);
+  padding: 2rem;
+  box-shadow: var(--shadow-md);
+  border: 1px solid var(--border-light);
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr auto;
+  gap: 1rem;
+  align-items: end;
+}
+
+@media (max-width: 768px) {
+  .formCard {
+    grid-template-columns: 1fr;
+  }
+}
+
+.resultsSection {
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.resultsGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+}
+
+/* Result Card Styles */
+.resultCard {
+  border-left: 4px solid var(--blood-primary);
+  transition: transform var(--transition-normal);
+}
+
+.resultCard:hover {
+  transform: translateX(4px);
+}
+
+.resultHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1rem;
+}
+
+.resultName {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+.resultMeta {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  margin-top: 0.25rem;
+}
+
+.badge {
+  background: var(--bg-color);
+  padding: 0.25rem 0.75rem;
+  border-radius: var(--radius-full);
+  font-size: 0.85rem;
+  font-weight: 600;
+  border: 1px solid var(--border-light);
+  color: var(--text-main);
+}
+
+.resultDetails {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.detailRow {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 0.95rem;
+}
+
+.detailIcon {
+  color: var(--action-green);
+}
