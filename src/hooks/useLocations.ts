@@ -1,9 +1,8 @@
 import { useState, useEffect } from 'react';
+import { indianStatesAndDistricts } from '../data/indianStatesAndDistricts';
+import type { LocationData } from '../data/indianStatesAndDistricts';
 
-export interface LocationData {
-  state: string;
-  districts: string[];
-}
+export type { LocationData };
 
 export const useLocations = () => {
   const [data, setData] = useState<LocationData[]>([]);
@@ -13,23 +12,10 @@ export const useLocations = () => {
   const [loadingDistricts, setLoadingDistricts] = useState(false);
 
   useEffect(() => {
-    const fetchLocations = async () => {
-      setLoadingStates(true);
-      try {
-        const response = await fetch('https://raw.githubusercontent.com/KTBsomen/Indian-state-district-json/main/india-states-districts-latest.json');
-        if (!response.ok) throw new Error('Failed to fetch locations');
-        const json = await response.json();
-        const stateData = Array.isArray(json) ? json : [];
-        setData(stateData);
-        setStates(stateData.map((s: any) => ({ state_name: s.state })));
-      } catch (error) {
-        console.error('Error fetching Indian states:', error);
-      } finally {
-        setLoadingStates(false);
-      }
-    };
-
-    fetchLocations();
+    setLoadingStates(true);
+    setData(indianStatesAndDistricts);
+    setStates(indianStatesAndDistricts.map((s: any) => ({ state_name: s.state })));
+    setLoadingStates(false);
   }, []);
 
   const fetchDistricts = (stateName: string) => {
