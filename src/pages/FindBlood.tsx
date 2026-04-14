@@ -169,7 +169,14 @@ export const FindBlood: React.FC = () => {
                         </div>
                       </div>
                       
-                      <Button variant="success" leftIcon={<Phone size={18} />}>
+                      <Button variant="success" leftIcon={<Phone size={18} />} onClick={() => {
+                        if (result.phone) {
+                          navigator.clipboard.writeText(result.phone);
+                          alert('Phone number copied to clipboard: ' + result.phone);
+                        } else {
+                          alert('Phone number not available.');
+                        }
+                      }}>
                         Call Now
                       </Button>
                     </div>

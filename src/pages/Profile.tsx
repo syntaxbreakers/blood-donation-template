@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { collection, addDoc, query, where, getDocs, deleteDoc, doc, updateDoc } from 'firebase/firestore';
+import { deleteUser } from 'firebase/auth';
 import { db } from '../firebase';
 import { Edit2, Settings, LogOut, PlusCircle, Calendar, Trash2 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
@@ -21,7 +22,7 @@ export const Profile: React.FC = () => {
   const [loadingPosts, setLoadingPosts] = useState(false);
   const [showRequestForm, setShowRequestForm] = useState(false);
   const [editingPostId, setEditingPostId] = useState<string | null>(null);
-  
+
   const [showCampForm, setShowCampForm] = useState(false);
   const [editingCampId, setEditingCampId] = useState<string | null>(null);
   const [myCamps, setMyCamps] = useState<any[]>([]);
@@ -118,6 +119,20 @@ export const Profile: React.FC = () => {
     navigate('/');
   };
 
+  const handleDeleteAccount = async () => {
+    if (!confirm('Are you sure you want to delete your account? This action cannot be undone.')) return;
+    try {
+      if (user) {
+        await deleteDoc(doc(db, 'users', user.uid));
+        await deleteUser(user);
+        navigate('/');
+      }
+    } catch (err: any) {
+      setMessage('Failed to delete account. Please try logging in again to verify deletion.');
+      console.error(err);
+    }
+  };
+
   const handleCreateRequest = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user || !userData) return;
@@ -125,7 +140,7 @@ export const Profile: React.FC = () => {
     setMessage('');
     try {
       const addressString = [requestData.building, requestData.fullAddress, requestData.district, requestData.state].filter(Boolean).join(', ');
-      
+
       if (editingPostId) {
         await updateDoc(doc(db, 'posts', editingPostId), {
           bloodGroup: requestData.bloodGroup,
@@ -145,7 +160,7 @@ export const Profile: React.FC = () => {
         });
         setMessage('Blood request posted successfully to the live feed!');
       }
-      
+
       setShowRequestForm(false);
       setEditingPostId(null);
       fetchMyPosts();
@@ -164,7 +179,7 @@ export const Profile: React.FC = () => {
     const pDistrict = parts.length > 1 ? parts[parts.length - 2] : '';
     const pBuilding = parts.length > 2 ? parts[0] : '';
     const pAddress = parts.length > 3 ? parts.slice(1, parts.length - 2).join(', ') : (parts.length > 2 ? '' : '');
-    
+
     setRequestData({
       bloodGroup: post.bloodGroup || '',
       state: pState,
@@ -194,7 +209,7 @@ export const Profile: React.FC = () => {
     setMessage('');
     try {
       const addressString = [campData.building, campData.fullAddress, campData.district, campData.state].filter(Boolean).join(', ');
-      
+
       if (editingCampId) {
         await updateDoc(doc(db, 'camps', editingCampId), {
           address: addressString,
@@ -231,7 +246,7 @@ export const Profile: React.FC = () => {
     const pDistrict = parts.length > 1 ? parts[parts.length - 2] : '';
     const pBuilding = parts.length > 2 ? parts[0] : '';
     const pAddress = parts.length > 3 ? parts.slice(1, parts.length - 2).join(', ') : '';
-    
+
     setCampData({
       state: pState,
       district: pDistrict,
@@ -323,18 +338,18 @@ export const Profile: React.FC = () => {
           <Card>
             <CardHeader>
               <CardTitle>
-                {showRequestForm ? (editingPostId ? 'Edit Urgent Request' : 'Create Urgent Request') : 
-                 showCampForm ? (editingCampId ? 'Edit Blood Camp' : 'Host Blood Camp') : 
-                 userData.role === 'donor' ? 'My Posts' : 'My Camps'}
+                {showRequestForm ? (editingPostId ? 'Edit Urgent Request' : 'Create Urgent Request') :
+                  showCampForm ? (editingCampId ? 'Edit Blood Camp' : 'Host Blood Camp') :
+                    userData.role === 'donor' ? 'My Posts' : 'My Camps'}
               </CardTitle>
             </CardHeader>
             <CardContent>
               {showRequestForm ? (
                 <form onSubmit={handleCreateRequest} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                  <Select 
-                    label="Blood Group Required" 
-                    value={requestData.bloodGroup} 
-                    onChange={e => setRequestData({...requestData, bloodGroup: e.target.value})}
+                  <Select
+                    label="Blood Group Required"
+                    value={requestData.bloodGroup}
+                    onChange={e => setRequestData({ ...requestData, bloodGroup: e.target.value })}
                     options={[
                       { value: '', label: 'Select Blood Group' },
                       { value: 'A+', label: 'A+' }, { value: 'A-', label: 'A-' },
@@ -347,7 +362,7 @@ export const Profile: React.FC = () => {
                   <Select
                     label="State"
                     value={requestData.state}
-                    onChange={e => setRequestData({...requestData, state: e.target.value, district: ''})}
+                    onChange={e => setRequestData({ ...requestData, state: e.target.value, district: '' })}
                     options={[
                       { value: '', label: loadingStates ? 'Loading...' : 'Select State' },
                       ...apiStates.map(s => ({ value: s.state_name, label: s.state_name }))
@@ -357,7 +372,7 @@ export const Profile: React.FC = () => {
                   <Select
                     label="District"
                     value={requestData.district}
-                    onChange={e => setRequestData({...requestData, district: e.target.value})}
+                    onChange={e => setRequestData({ ...requestData, district: e.target.value })}
                     options={[
                       { value: '', label: loadingDistricts ? 'Loading...' : 'Select District' },
                       ...apiDistricts.map(d => ({ value: d.district_name, label: d.district_name }))
@@ -365,27 +380,27 @@ export const Profile: React.FC = () => {
                     disabled={!requestData.state || loadingDistricts}
                     required
                   />
-                  <Input 
-                    label="Building / Hospital Name" 
+                  <Input
+                    label="Building / Hospital Name"
                     type="text"
                     value={requestData.building}
-                    onChange={e => setRequestData({...requestData, building: e.target.value})}
+                    onChange={e => setRequestData({ ...requestData, building: e.target.value })}
                     placeholder="e.g. Apollo Hospital"
                     required
                   />
-                  <Input 
-                    label="Full Address (Street, Area)" 
+                  <Input
+                    label="Full Address (Street, Area)"
                     type="text"
                     value={requestData.fullAddress}
-                    onChange={e => setRequestData({...requestData, fullAddress: e.target.value})}
+                    onChange={e => setRequestData({ ...requestData, fullAddress: e.target.value })}
                     placeholder="e.g. Jubilee Hills, Road No 36"
                     required
                   />
-                  <Input 
-                    label="Contact Phone" 
+                  <Input
+                    label="Contact Phone"
                     type="tel"
                     value={requestData.phone}
-                    onChange={e => setRequestData({...requestData, phone: e.target.value})}
+                    onChange={e => setRequestData({ ...requestData, phone: e.target.value })}
                     placeholder="Enter phone number"
                     required
                   />
@@ -400,17 +415,17 @@ export const Profile: React.FC = () => {
                 </form>
               ) : showCampForm ? (
                 <form onSubmit={handleHostCamp} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                  <Input 
-                    label="Camp Date" 
+                  <Input
+                    label="Camp Date"
                     type="date"
                     value={campData.campDate}
-                    onChange={e => setCampData({...campData, campDate: e.target.value})}
+                    onChange={e => setCampData({ ...campData, campDate: e.target.value })}
                     required
                   />
                   <Select
                     label="State"
                     value={campData.state}
-                    onChange={e => setCampData({...campData, state: e.target.value, district: ''})}
+                    onChange={e => setCampData({ ...campData, state: e.target.value, district: '' })}
                     options={[
                       { value: '', label: loadingStates ? 'Loading...' : 'Select State' },
                       ...apiStates.map(s => ({ value: s.state_name, label: s.state_name }))
@@ -420,7 +435,7 @@ export const Profile: React.FC = () => {
                   <Select
                     label="District"
                     value={campData.district}
-                    onChange={e => setCampData({...campData, district: e.target.value})}
+                    onChange={e => setCampData({ ...campData, district: e.target.value })}
                     options={[
                       { value: '', label: loadingDistricts ? 'Loading...' : 'Select District' },
                       ...apiDistricts.map(d => ({ value: d.district_name, label: d.district_name }))
@@ -428,19 +443,19 @@ export const Profile: React.FC = () => {
                     disabled={!campData.state || loadingDistricts}
                     required
                   />
-                  <Input 
-                    label="Building / Location Name" 
+                  <Input
+                    label="Building / Location Name"
                     type="text"
                     value={campData.building}
-                    onChange={e => setCampData({...campData, building: e.target.value})}
+                    onChange={e => setCampData({ ...campData, building: e.target.value })}
                     placeholder="e.g. Community Hall"
                     required
                   />
-                  <Input 
-                    label="Full Address (Street, Area)" 
+                  <Input
+                    label="Full Address (Street, Area)"
                     type="text"
                     value={campData.fullAddress}
-                    onChange={e => setCampData({...campData, fullAddress: e.target.value})}
+                    onChange={e => setCampData({ ...campData, fullAddress: e.target.value })}
                     placeholder="e.g. MG Road, Block A"
                     required
                   />
@@ -449,12 +464,12 @@ export const Profile: React.FC = () => {
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
                       {['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'].map(bg => (
                         <label key={bg} style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', background: 'var(--bg-color)', padding: '0.35rem 0.75rem', borderRadius: 'var(--radius-full)', fontSize: '0.85rem', cursor: 'pointer', border: '1px solid var(--border-light)' }}>
-                          <input 
-                            type="checkbox" 
+                          <input
+                            type="checkbox"
                             checked={campData.stock.includes(bg)}
                             onChange={(e) => {
-                              if (e.target.checked) setCampData({...campData, stock: [...campData.stock, bg]});
-                              else setCampData({...campData, stock: campData.stock.filter(s => s !== bg)});
+                              if (e.target.checked) setCampData({ ...campData, stock: [...campData.stock, bg] });
+                              else setCampData({ ...campData, stock: campData.stock.filter(s => s !== bg) });
                             }}
                           />
                           {bg}
@@ -475,38 +490,38 @@ export const Profile: React.FC = () => {
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                   {loadingPosts ? <p>Loading posts...</p> : (
                     myPosts.length === 0 ? <p style={{ color: 'var(--text-muted)' }}>You have no active posts.</p> :
-                    myPosts.map(post => (
-                      <div key={post.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1rem', border: '1px solid var(--border-light)', borderRadius: 'var(--radius-md)' }}>
-                        <div>
-                          <strong>{post.bloodGroup}</strong> required at {post.address} 
-                          <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Contact: {post.phone}</div>
+                      myPosts.map(post => (
+                        <div key={post.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1rem', border: '1px solid var(--border-light)', borderRadius: 'var(--radius-md)' }}>
+                          <div>
+                            <strong>{post.bloodGroup}</strong> required at {post.address}
+                            <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Contact: {post.phone}</div>
+                          </div>
+                          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginTop: '1rem' }}>
+                            <Button variant="outline" size="sm" onClick={() => handleEditClick(post)} leftIcon={<Edit2 size={14} />}>Edit</Button>
+                            <Button variant="outline" size="sm" style={{ color: 'var(--blood-primary)', borderColor: 'var(--blood-primary)' }} onClick={() => handleDeletePost(post.id)} leftIcon={<Trash2 size={14} />}>Delete</Button>
+                          </div>
                         </div>
-                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginTop: '1rem' }}>
-                          <Button variant="outline" size="sm" onClick={() => handleEditClick(post)} leftIcon={<Edit2 size={14} />}>Edit</Button>
-                          <Button variant="outline" size="sm" style={{ color: 'var(--blood-primary)', borderColor: 'var(--blood-primary)' }} onClick={() => handleDeletePost(post.id)} leftIcon={<Trash2 size={14} />}>Delete</Button>
-                        </div>
-                      </div>
-                    ))
+                      ))
                   )}
                 </div>
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                   {loadingPosts ? <p>Loading camps...</p> : (
                     myCamps.length === 0 ? <p style={{ color: 'var(--text-muted)' }}>You have no active camps.</p> :
-                    myCamps.map(camp => (
-                      <div key={camp.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1rem', border: '1px solid var(--border-light)', borderRadius: 'var(--radius-md)' }}>
-                        <div>
-                          <strong>Camp on {camp.campDate}</strong> at {camp.address} 
-                          <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginTop: '0.25rem' }}>
-                            Accepting: {camp.stock?.length > 0 ? camp.stock.join(', ') : 'All Blood Groups'}
+                      myCamps.map(camp => (
+                        <div key={camp.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1rem', border: '1px solid var(--border-light)', borderRadius: 'var(--radius-md)' }}>
+                          <div>
+                            <strong>Camp on {camp.campDate}</strong> at {camp.address}
+                            <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginTop: '0.25rem' }}>
+                              Accepting: {camp.stock?.length > 0 ? camp.stock.join(', ') : 'All Blood Groups'}
+                            </div>
+                          </div>
+                          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginTop: '1rem' }}>
+                            <Button variant="outline" size="sm" onClick={() => handleEditCampClick(camp)} leftIcon={<Edit2 size={14} />}>Edit</Button>
+                            <Button variant="outline" size="sm" style={{ color: 'var(--blood-primary)', borderColor: 'var(--blood-primary)' }} onClick={() => handleDeleteCamp(camp.id)} leftIcon={<Trash2 size={14} />}>Delete</Button>
                           </div>
                         </div>
-                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginTop: '1rem' }}>
-                          <Button variant="outline" size="sm" onClick={() => handleEditCampClick(camp)} leftIcon={<Edit2 size={14} />}>Edit</Button>
-                          <Button variant="outline" size="sm" style={{ color: 'var(--blood-primary)', borderColor: 'var(--blood-primary)' }} onClick={() => handleDeleteCamp(camp.id)} leftIcon={<Trash2 size={14} />}>Delete</Button>
-                        </div>
-                      </div>
-                    ))
+                      ))
                   )}
                 </div>
               )}
@@ -517,7 +532,7 @@ export const Profile: React.FC = () => {
         {/* Right Column: Mini actions/Stats */}
         <div>
           {message && (
-             <div style={{ padding: '0.75rem 1rem', background: 'var(--action-green-hover)', color: 'white', borderRadius: 'var(--radius-md)', marginBottom: '1.5rem', fontSize: '0.9rem' }}>
+            <div style={{ padding: '0.75rem 1rem', background: 'var(--action-green-hover)', color: 'white', borderRadius: 'var(--radius-md)', marginBottom: '1.5rem', fontSize: '0.9rem' }}>
               {message}
             </div>
           )}
@@ -525,11 +540,11 @@ export const Profile: React.FC = () => {
           <Card style={{ marginBottom: '1.5rem' }}>
             <CardContent style={{ padding: '1.5rem' }}>
               {userData.role === 'donor' ? (
-                <Button 
-                  variant="primary" 
-                  fullWidth 
-                  style={{ marginBottom: '1rem', justifyContent: 'center' }} 
-                  leftIcon={<PlusCircle size={18} />} 
+                <Button
+                  variant="primary"
+                  fullWidth
+                  style={{ marginBottom: '1rem', justifyContent: 'center' }}
+                  leftIcon={<PlusCircle size={18} />}
                   onClick={() => {
                     setEditingPostId(null);
                     setShowRequestForm(true);
@@ -539,11 +554,11 @@ export const Profile: React.FC = () => {
                   Request Blood Urgent
                 </Button>
               ) : (
-                <Button 
-                  variant="success" 
-                  fullWidth 
-                  style={{ marginBottom: '1rem', justifyContent: 'center' }} 
-                  leftIcon={<Calendar size={18} />} 
+                <Button
+                  variant="success"
+                  fullWidth
+                  style={{ marginBottom: '1rem', justifyContent: 'center' }}
+                  leftIcon={<Calendar size={18} />}
                   onClick={() => {
                     setEditingCampId(null);
                     setCampData({ ...campData, campDate: new Date().toISOString().split('T')[0], stock: [] });
@@ -554,12 +569,15 @@ export const Profile: React.FC = () => {
                   {isPublishing ? 'Hosting...' : 'Host Donation Camp'}
                 </Button>
               )}
-              
+
               <Button variant="ghost" fullWidth style={{ justifyContent: 'flex-start' }} leftIcon={<Settings size={18} />}>
                 Account Settings
               </Button>
               <Button variant="ghost" fullWidth style={{ justifyContent: 'flex-start', color: 'var(--blood-primary)' }} leftIcon={<LogOut size={18} />} onClick={handleLogout}>
                 Log Out
+              </Button>
+              <Button variant="ghost" fullWidth style={{ justifyContent: 'flex-start', color: 'red', marginTop: '0.5rem' }} leftIcon={<Trash2 size={18} />} onClick={handleDeleteAccount}>
+                Delete Account
               </Button>
             </CardContent>
           </Card>
@@ -570,9 +588,22 @@ export const Profile: React.FC = () => {
                 <CardTitle style={{ fontSize: '1rem' }}>Donation Status</CardTitle>
               </CardHeader>
               <CardContent>
-                <div style={{ padding: '1rem', background: 'var(--action-green-hover)', color: 'white', borderRadius: 'var(--radius-md)', textAlign: 'center', fontWeight: '500' }}>
-                  Eligible to Donate
-                </div>
+                {(() => {
+                  const isComplete = userData.fullName && userData.email && userData.bloodGroup && (userData as any).phone && (userData as any).state && (userData as any).district;
+                  if (isComplete) {
+                    return (
+                      <div style={{ padding: '1rem', background: 'var(--action-green-hover)', color: 'white', borderRadius: 'var(--radius-md)', textAlign: 'center', fontWeight: '500' }}>
+                        Eligible to Donate
+                      </div>
+                    );
+                  } else {
+                    return (
+                      <div style={{ padding: '1rem', background: 'var(--text-muted)', color: 'white', borderRadius: 'var(--radius-md)', textAlign: 'center', fontWeight: '500' }}>
+                        Incomplete Profile - Not Eligible
+                      </div>
+                    );
+                  }
+                })()}
               </CardContent>
             </Card>
           )}

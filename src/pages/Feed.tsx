@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { collection, query, orderBy, getDocs } from 'firebase/firestore';
 import { db } from '../firebase';
-import { MapPin, Clock, Calendar, AlertCircle, Building2 } from 'lucide-react';
+import { MapPin, Clock, Calendar, AlertCircle, Building2, Phone } from 'lucide-react';
 import { Card, CardContent } from '../components/ui/Card';
+import { Button } from '../components/ui/Button';
 import styles from './Feed.module.css';
 
 interface BloodRequest {
@@ -11,6 +12,7 @@ interface BloodRequest {
   fullName: string;
   bloodGroup: string;
   address: string;
+  phone?: string;
   createdAt: number;
   expiresAt: number;
 }
@@ -136,6 +138,23 @@ export const Feed: React.FC = () => {
                         Posted {new Date(req.createdAt).toLocaleDateString()}
                       </div>
                     </div>
+                    {req.phone && (
+                      <div style={{ marginTop: '1rem' }}>
+                        <Button 
+                          variant="success" 
+                          fullWidth 
+                          leftIcon={<Phone size={18} />}
+                          onClick={() => {
+                            if (req.phone) {
+                              navigator.clipboard.writeText(req.phone);
+                              alert('Phone number copied to clipboard: ' + req.phone);
+                            }
+                          }}
+                        >
+                          Call Now
+                        </Button>
+                      </div>
+                    )}
                   </CardContent>
                 </Card>
               ))
