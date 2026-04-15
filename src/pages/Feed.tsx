@@ -146,8 +146,13 @@ export const Feed: React.FC = () => {
                           leftIcon={<Phone size={18} />}
                           onClick={() => {
                             if (req.phone) {
-                              navigator.clipboard.writeText(req.phone);
-                              alert('Phone number copied to clipboard: ' + req.phone);
+                              const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+                              if (isMobile) {
+                                window.location.href = `tel:${req.phone}`;
+                              } else {
+                                navigator.clipboard.writeText(req.phone);
+                                alert('Phone number copied to clipboard: ' + req.phone);
+                              }
                             }
                           }}
                         >

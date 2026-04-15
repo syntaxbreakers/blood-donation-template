@@ -108,8 +108,30 @@ export const Profile: React.FC = () => {
   if (!userData) {
     return (
       <div style={{ textAlign: 'center', padding: '5rem' }}>
-        <h2>Please log in to view your profile.</h2>
-        <Button style={{ marginTop: '1rem' }} onClick={() => navigate('/login')}>Log In</Button>
+        {user ? (
+          <div>
+            <h2>Profile Not Found</h2>
+            <p style={{ marginTop: '1rem', color: 'var(--text-muted)' }}>It looks like your account data is missing or was partially deleted.</p>
+            <div style={{ marginTop: '2rem', display: 'flex', justifyContent: 'center', gap: '1rem' }}>
+              <Button onClick={() => signOut()}>Log Out</Button>
+              <Button style={{ background: 'red', color: 'white' }} onClick={async () => {
+                if (!confirm('Delete remaining login data?')) return;
+                try {
+                  await deleteUser(user);
+                  await signOut();
+                  navigate('/');
+                } catch (e) {
+                  alert('Please log out, log back in, and try again.');
+                }
+              }}>Force Delete Account</Button>
+            </div>
+          </div>
+        ) : (
+          <div>
+            <h2>Please log in to view your profile.</h2>
+            <Button style={{ marginTop: '1rem' }} onClick={() => navigate('/login')}>Log In</Button>
+          </div>
+        )}
       </div>
     );
   }
@@ -123,12 +145,25 @@ export const Profile: React.FC = () => {
     if (!confirm('Are you sure you want to delete your account? This action cannot be undone.')) return;
     try {
       if (user) {
+        const lastSignInTime = new Date(user.metadata.lastSignInTime || 0).getTime();
+        if (Date.now() - lastSignInTime > 5 * 60 * 1000) {
+          alert('For security reasons, please log out and log back in before deleting your account.');
+          await signOut();
+          return;
+        }
+
         await deleteDoc(doc(db, 'users', user.uid));
         await deleteUser(user);
+        await signOut();
         navigate('/');
       }
     } catch (err: any) {
-      setMessage('Failed to delete account. Please try logging in again to verify deletion.');
+      if (err.code === 'auth/requires-recent-login') {
+        setMessage('Need recent login to delete account. Please log out and back in.');
+        await signOut();
+      } else {
+        setMessage('Failed to delete account. ' + err.message);
+      }
       console.error(err);
     }
   };
