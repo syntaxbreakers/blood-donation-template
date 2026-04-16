@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { collection, addDoc, query, where, getDocs, deleteDoc, doc, updateDoc } from 'firebase/firestore';
 import { deleteUser } from 'firebase/auth';
 import { db } from '../firebase';
-import { Edit2, Settings, LogOut, PlusCircle, Calendar, Trash2 } from 'lucide-react';
+import { Edit2, LogOut, PlusCircle, Calendar, Trash2 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { Card, CardHeader, CardTitle, CardContent } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
@@ -605,9 +605,7 @@ export const Profile: React.FC = () => {
                 </Button>
               )}
 
-              <Button variant="ghost" fullWidth style={{ justifyContent: 'flex-start' }} leftIcon={<Settings size={18} />}>
-                Account Settings
-              </Button>
+
               <Button variant="ghost" fullWidth style={{ justifyContent: 'flex-start', color: 'var(--blood-primary)' }} leftIcon={<LogOut size={18} />} onClick={handleLogout}>
                 Log Out
               </Button>
