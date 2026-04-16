@@ -171,13 +171,7 @@ export const FindBlood: React.FC = () => {
                       
                       <Button variant="success" leftIcon={<Phone size={18} />} onClick={() => {
                         if (result.phone) {
-                          const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-                          if (isMobile) {
-                            window.location.href = `tel:${result.phone}`;
-                          } else {
-                            navigator.clipboard.writeText(result.phone);
-                            alert('Phone number copied to clipboard: ' + result.phone);
-                          }
+                          window.location.href = `tel:${result.phone}`;
                         } else {
                           alert('Phone number not available.');
                         }
